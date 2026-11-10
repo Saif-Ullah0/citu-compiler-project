@@ -19,10 +19,12 @@ void writeTokens(const std::string& path, const std::vector<Token>& tokens) {
         throw std::runtime_error("Cannot write: " + path);
     }
     for (const auto& t : tokens) {
-        out << tokenTypeToString(t.type) << " " << t.lexeme << "\n";
+        // Format: LINE:COL | TYPE | LEXEME
+        out << t.line << ":" << t.column << " | " 
+            << tokenTypeToString(t.type) << " | " 
+            << t.lexeme << "\n";
     }
 }
-
 std::string tokenTypeToString(TokenType type) {
     switch (type) {
         case TokenType::KEYWORD:        return "KEYWORD";
