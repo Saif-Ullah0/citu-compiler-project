@@ -1,22 +1,27 @@
-# CS426 Compiler Construction - Project Phase 1
+
+# CS426 Compiler Construction
+## Project Phase 1
 
 **Student ID:** BSCS23065  
 **Student Name:** Saif Ullah  
-**Repository URL:** https://github.com/Saif-Ullah0/citu-compiler-pipeline
+**Course:** CS426 - Compiler Construction  
+**Repository:** https://github.com/Saif-Ullah0/citu-compiler-project
 
 ---
 
 ## 1. Overview
 
-This phase focuses on implementing and demonstrating the core structure of a custom compiler pipeline using a C-like language syntax. The examples below illustrate the supported language constructs, including variable declarations, loops, conditions, functions, and structs.
+This project phase focuses on the foundational design and implementation of a compiler pipeline for a custom C-like language. The goal is to demonstrate the major building blocks of a compiler, including lexical analysis, parsing, semantic processing, and intermediate code generation.
+
+The examples below illustrate the supported language constructs and how they align with the core compiler stages.
 
 ---
 
-## 2. Example Programs (3)
+## 2. Example Programs
 
-### Program 1: Basic Logic (While Loop & If-Else)
+### Program 1: Basic Logic with While Loop and If-Else
 
-This program demonstrates variable declaration, arithmetic operations, a while loop, and if-else branching.
+This program demonstrates variable declaration, arithmetic operations, conditional branching, and repetition.
 
 ```c
 main shro
@@ -40,9 +45,9 @@ main shro
 khatam
 ```
 
-### Program 2: Functions and Parameters
+### Program 2: Function Definition and Parameter Passing
 
-This program demonstrates function definition, parameter passing, and return values.
+This example shows function declaration, parameter handling, and return-value processing.
 
 ```c
 int add(int a, int b) shro
@@ -57,9 +62,9 @@ main shro
 khatam
 ```
 
-### Program 3: Structs (No Classes)
+### Program 3: Struct Definition and Usage
 
-This program demonstrates a struct definition and usage. Classes and do-while loops are restricted in this project design.
+This program demonstrates support for structured data using a `struct`, while restricting classes and do-while constructs in the language design.
 
 ```c
 struct Point shro
@@ -76,6 +81,174 @@ khatam
 
 ---
 
-## 3. Summary
+## 3. CITU Language Grammar
 
-These examples cover the fundamental constructs required for the compiler front-end: lexical structure, parsing of statements, control flow, function support, and structured data handling. The project is designed to progressively build a working compiler pipeline for a custom language.
+### 3.1 Lexical Rules
+
+- Keywords: `main`, `shro`, `khatam`, `agar`, `magar`, `jabtak`, `int`, `char`, `float`, `struct`, `return`
+- Identifiers: `[A-Za-z_][A-Za-z0-9_]*`
+- Integer Literals: `[0-9]+`
+- Operators: `+`, `-`, `*`, `/`, `=`, `==`, `<`, `>`, `<=`, `>=`
+- Separators: `(`, `)`, `{`, `}`, `;`, `,`, `.`
+
+### 3.2 Syntax Rules
+
+The grammar is designed to support a top-down, LL(1)-style parser with non-left-recursive structures.
+
+```text
+1.  PROGRAM      → main shro STMT_LIST khatam
+2.  STMT_LIST    → STMT STMT_LIST | ε
+3.  STMT         → DECL | ASSIGN | IF_STMT | WHILE_STMT | STRUCT_DEF | FUNC_DEF | RETURN_STMT
+
+4.  DECL         → TYPE ID ;
+5.  TYPE         → int | char | float | struct ID
+
+6.  STRUCT_DEF   → struct ID shro DECL_LIST khatam
+7.  DECL_LIST    → DECL DECL_LIST | ε
+
+8.  FUNC_DEF     → TYPE ID ( PARAM_LIST ) shro STMT_LIST khatam
+9.  PARAM_LIST   → TYPE ID PARAM_TAIL | ε
+10. PARAM_TAIL   → , TYPE ID PARAM_TAIL | ε
+
+11. ASSIGN       → ID = EXPR ;
+12. IF_STMT      → agar ( EXPR ) shro STMT_LIST khatam ELSE_PART
+13. ELSE_PART    → magar shro STMT_LIST khatam | ε
+14. WHILE_STMT   → jabtak ( EXPR ) shro STMT_LIST khatam
+15. RETURN_STMT  → return EXPR ;
+
+16. EXPR         → TERM EXPR_PRIME
+17. EXPR_PRIME   → + TERM EXPR_PRIME | - TERM EXPR_PRIME | == TERM EXPR_PRIME | < TERM EXPR_PRIME | > TERM EXPR_PRIME | ε
+18. TERM         → FACTOR TERM_PRIME
+19. TERM_PRIME   → * FACTOR TERM_PRIME | / FACTOR TERM_PRIME | ε
+20. FACTOR       → ID | NUM | ( EXPR )
+```
+
+---
+
+## 4. Data Structures
+
+### 4.1 Token Structure
+
+The lexer uses this structure to pass tokenized data to the parser.
+
+```cpp
+struct Token {
+    TokenType type;       // KEYWORD, IDENTIFIER, INT_CONST, etc.
+    std::string lexeme;   // e.g., "int", "x", "10"
+    int line;
+    int column;
+};
+```
+
+### 4.2 Symbol Table Entry
+
+The semantic analyzer uses this structure to manage variables and their scope information.
+
+```cpp
+struct SymbolEntry {
+    std::string name;     // e.g., "x"
+    std::string type;     // e.g., "int", "struct Point"
+    int scopeLevel;       // 0 for global, 1 for local
+};
+// Implemented as a vector of hash maps (stack of scopes).
+```
+
+### 4.3 AST Node
+
+The parser uses an abstract syntax tree to represent the language structure.
+
+```cpp
+struct ASTNode {
+    std::string label;    // e.g., "IF_STMT", "EXPR"
+    std::string value;    // e.g., "x", "10"
+    std::vector<ASTNode*> children;
+};
+```
+
+---
+
+## 5. Intermediate File Formats
+
+To maintain modularity and support debugging, the compiler is organized as a pipeline. Each stage reads the output generated by the previous phase and writes a new intermediate file in the `output/` directory.
+
+### Stage 1: Lexer Output (`output/1_tokens.txt`)
+
+**Format:** `[LINE:COL] | [TYPE] | [LEXEME]`
+
+```text
+1:1   | KEYWORD    | main
+1:6   | KEYWORD    | shro
+2:5   | KEYWORD    | int
+```
+
+### Stage 2: Parser Output (`output/2_parse_tree.txt`)
+
+**Format:** Indented AST structure.
+
+```text
+PROGRAM
+  main
+  STMT_LIST
+    STMT
+      DECL
+        TYPE
+          int
+```
+
+### Stage 3: Semantic Analyzer Output (`output/3_symbol_table.txt`)
+
+**Format:** CSV-like table representing variables and their scopes.
+
+```text
+Index, Name, Type, ScopeLevel
+1, main, function, 0
+2, x, int, 1
+```
+
+### Stage 4: Intermediate Representation (`output/4_ir_code.txt`)
+
+**Format:** Three-address code (TAC).
+
+```text
+t1 = 10
+x = t1
+```
+
+### Stage 5: Code Generation (`output/5_assembly.asm`)
+
+**Format:** Pseudo-x86 assembly.
+
+```asm
+mov eax, 10
+mov [ebp-4], eax
+```
+
+---
+
+## 6. Summary
+
+This phase establishes the basic architecture and syntax of the custom compiler. It covers the essential front-end components of a compiler project: lexical analysis, parsing, semantic tracking, and intermediate representation design. These foundations are crucial for the next stages of compiler development and project expansion.
+
+---
+
+## 7. Submission Note
+
+This document is prepared as a structured and professional summary of the Phase 1 compiler implementation and serves as a ready-to-commit project report.
+
+```asm
+mov eax, 10
+mov [ebp-4], eax
+```
+
+---
+
+## 6. Summary
+
+This phase establishes the basic architecture and syntax of the custom compiler. It covers the essential front-end components of a compiler project: lexical analysis, parsing, semantic tracking, and intermediate representation design. These foundations are crucial for the next stages of compiler development and project expansion.
+
+---
+
+## 7. Submission Note
+
+This document is prepared as a structured and professional summary of the Phase 1 compiler implementation and serves as a ready-to-commit project report.
+
