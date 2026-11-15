@@ -235,20 +235,3 @@ This phase establishes the basic architecture and syntax of the custom compiler.
 
 This document is prepared as a structured and professional summary of the Phase 1 compiler implementation and serves as a ready-to-commit project report.
 
-```asm
-mov eax, 10
-mov [ebp-4], eax
-```
-
----
-
-## 6. Summary
-
-This phase establishes the basic architecture and syntax of the custom compiler. It covers the essential front-end components of a compiler project: lexical analysis, parsing, semantic tracking, and intermediate representation design. These foundations are crucial for the next stages of compiler development and project expansion.
-
----
-
-## 7. Submission Note
-
-This document is prepared as a structured and professional summary of the Phase 1 compiler implementation and serves as a ready-to-commit project report.
-
