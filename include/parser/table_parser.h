@@ -4,11 +4,15 @@
 #include <stack>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 class TableParser {
 public:
     TableParser(const std::vector<Token>& tokens, bool useLL1);
-    bool parse();
+    
+    bool parse(std::ostream& out);
+    bool parseSLR1(std::ostream& out);
 
 private:
     std::vector<Token> tokens;

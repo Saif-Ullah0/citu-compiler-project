@@ -29,13 +29,13 @@ void TableParser::pushRule(const std::string& rule) {
     }
 }
 
-bool TableParser::parse() {
+bool TableParser::parse(std::ostream& out) {
     int i = 0; // Input pointer
     parseStack.push("$");       // Bottom of stack
     parseStack.push("PROGRAM"); // Start symbol
 
-    std::cout << "Stack\t\tInput\t\tAction\n";
-    std::cout << "--------------------------------------------------\n";
+    out << "Stack\t\tInput\t\tAction\n";
+    out << "--------------------------------------------------\n";
 
     while (!parseStack.empty()) {
         std::string top = parseStack.top();
@@ -50,17 +50,17 @@ bool TableParser::parse() {
             currentToken = "NUM";
         }
 
-        std::cout << top << "\t\t" << currentToken << "\t\t";
+        out << top << "\t\t" << currentToken << "\t\t";
 
         // 1. SUCCESS CONDITION
         if (top == "$" && currentToken == "$") {
-            std::cout << "ACCEPT\n";
+            out << "ACCEPT\n";
             return true;
         }
 
         // 2. TERMINAL MATCHING
         if (top == currentToken) {
-            std::cout << "Match " << top << "\n";
+            out << "Match " << top << "\n";
             parseStack.pop();
             i++;
         }
@@ -68,14 +68,71 @@ bool TableParser::parse() {
         else {
             if (table.find(top) != table.end() && table[top].find(currentToken) != table[top].end()) {
                 std::string rule = table[top][currentToken];
-                std::cout << "Output " << top << " -> " << rule << "\n";
+                out << "Output " << top << " -> " << rule << "\n";
                 parseStack.pop();
                 pushRule(rule);
             } else {
-                std::cout << "ERROR: No rule for [" << top << "] and [" << currentToken << "]\n";
+                out << "ERROR: No rule for [" << top << "] and [" << currentToken << "]\n";
                 return false;
             }
         }
     }
     return false;
+}
+
+bool TableParser::parseSLR1(std::ostream& out) {
+    SLRActionTable actionTable = getSLR1ActionTable();
+    SLRGotoTable gotoTable = getSLR1GotoTable();
+
+    std::stack<int> stateStack;
+    stateStack.push(0); // Start at state 0
+    int i = 0;
+
+    out << "StateStack\tInput\t\tAction\n";
+    out << "--------------------------------------------------\n";
+
+    while (true) {
+        int currentState = stateStack.top();
+        std::string currentToken = tokens[i].lexeme;
+
+        // Map tokens
+        if (tokens[i].type == TokenType::END_OF_FILE) currentToken = "$";
+        else if (tokens[i].type == TokenType::IDENTIFIER) currentToken = "ID";
+        else if (tokens[i].type == TokenType::INT_CONST) currentToken = "NUM";
+
+        out << currentState << "\t\t" << currentToken << "\t\t";
+
+        if (actionTable[currentState].find(currentToken) == actionTable[currentState].end()) {
+            out << "ERROR: No action for state " << currentState << " and " << currentToken << "\n";
+            return false;
+        }
+
+        std::string action = actionTable[currentState][currentToken];
+
+        if (action == "acc") {
+            out << "ACCEPT\n";
+            return true;
+        } 
+        else if (action[0] == 's') { // Shift
+            int nextState = std::stoi(action.substr(1));
+            out << "Shift to state " << nextState << "\n";
+            stateStack.push(nextState);
+            i++; // Advance input
+        } 
+        else if (action[0] == 'r') { // Reduce
+            int ruleNum = std::stoi(action.substr(1));
+            int popCount = getRuleLength(ruleNum);
+            std::string lhs = getRuleLHS(ruleNum);
+            
+            out << "Reduce by rule " << ruleNum << " (" << lhs << ")\n";
+            
+            for (int p = 0; p < popCount; p++) {
+                stateStack.pop();
+            }
+            
+            int topState = stateStack.top();
+            int gotoState = gotoTable[topState][lhs];
+            stateStack.push(gotoState);
+        }
+    }
 }
