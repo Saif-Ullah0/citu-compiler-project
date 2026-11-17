@@ -1,7 +1,9 @@
 #include "lexer/lexer.h"
 #include "utils/file_io.h"
 #include "parser/table_parser.h"
+#include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 int main(int argc, char** argv) {
@@ -29,16 +31,22 @@ int main(int argc, char** argv) {
             // 1. First, Lex the input into tokens
             Lexer lexer(source);
             std::vector<Token> tokens = lexer.tokenize();
+
+            std::ofstream outFile(outputPath);
+            if (!outFile.is_open()) {
+                throw std::runtime_error("Cannot open output file: " + outputPath);
+            }
             
             // 2. Then Parse
             bool useLL1 = (mode == "parseLL1");
             TableParser parser(tokens, useLL1);
             
-            std::cout << "[Phase 2] Table-Driven Parsing (" << mode << ")...\n\n";
-            if (parser.parse()) {
-                std::cout << "\nParsing Successful!\n";
+            std::cout << "[Phase 2] Parsing (" << mode << ")... Check " << outputPath << " for trace.\n";
+            bool success = (mode == "parseLL1") ? parser.parse(outFile) : parser.parseSLR1(outFile);
+            if (success){
+                std::cout << "Parsing Successful!\n";
             } else {
-                std::cerr << "\nParsing Failed.\n";
+                std::cerr << "Parsing Failed. See " << outputPath << "\n";
                 return 1;
             }
         }
