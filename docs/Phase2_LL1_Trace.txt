@@ -1,0 +1,15 @@
+Stack		Input		Action
+--------------------------------------------------
+PROGRAM		main		Output PROGRAM -> main shro STMT_LIST khatam
+main		main		Match main
+shro		shro		Match shro
+STMT_LIST		int		Output STMT_LIST -> STMT STMT_LIST
+STMT		int		Output STMT -> DECL
+DECL		int		Output DECL -> TYPE ID ;
+TYPE		int		Output TYPE -> int
+int		int		Match int
+ID		ID		Match ID
+;		;		Match ;
+STMT_LIST		khatam		Output STMT_LIST -> epsilon
+khatam		khatam		Match khatam
+$		$		ACCEPT

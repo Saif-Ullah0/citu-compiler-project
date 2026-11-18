@@ -1,0 +1,12 @@
+StateStack	Input		Action
+--------------------------------------------------
+0		main		Shift to state 2
+2		shro		Shift to state 3
+3		int		Shift to state 6
+6		ID		Shift to state 8
+8		;		Shift to state 9
+9		khatam		Reduce by rule 3 (D)
+5		khatam		Reduce by rule 2 (L)
+4		khatam		Shift to state 7
+7		$		Reduce by rule 1 (P)
+1		$		ACCEPT
