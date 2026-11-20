@@ -1,6 +1,7 @@
 #include "lexer/lexer.h"
 #include "utils/file_io.h"
 #include "parser/table_parser.h"
+#include "semantic/semantic_analyzer.h"
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -47,6 +48,25 @@ int main(int argc, char** argv) {
                 std::cout << "Parsing Successful!\n";
             } else {
                 std::cerr << "Parsing Failed. See " << outputPath << "\n";
+                return 1;
+            }
+        }
+                else if (mode == "semantic") {
+            Lexer lexer(source);
+            std::vector<Token> tokens = lexer.tokenize();
+            
+            std::ofstream outFile(outputPath);
+            if (!outFile.is_open()) {
+                throw std::runtime_error("Cannot open output file: " + outputPath);
+            }
+
+            std::cout << "[Phase 3] Semantic Analysis... Check " << outputPath << "\n";
+            SemanticAnalyzer analyzer(tokens);
+            
+            if (analyzer.analyze(outFile)) {
+                std::cout << "Semantic Analysis Successful (No errors).\n";
+            } else {
+                std::cerr << "Semantic Analysis Failed (Errors found).\n";
                 return 1;
             }
         }
