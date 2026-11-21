@@ -1,0 +1,4 @@
+Index | Name | Type | Scope Level
+----------------------------------
+1 | x | int | 1
+2 | y | int | 1
