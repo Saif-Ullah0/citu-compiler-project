@@ -8,6 +8,7 @@ g++ -std=c++14 -Wall -Wextra -Iinclude ^
     src\utils\file_io.cpp ^
     src\parser\table_parser.cpp ^
     src\semantic\semantic_analyzer.cpp ^
+    src\codegen\ir_generator.cpp ^
     -o build\compiler.exe
 
 if %ERRORLEVEL% EQU 0 (

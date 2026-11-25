@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include "codegen/ir_generator.h" 
 
 int main(int argc, char** argv) {
     if (argc != 4) {
@@ -69,6 +70,20 @@ int main(int argc, char** argv) {
                 std::cerr << "Semantic Analysis Failed (Errors found).\n";
                 return 1;
             }
+        }
+                else if (mode == "ir") {
+            Lexer lexer(source);
+            std::vector<Token> tokens = lexer.tokenize();
+            
+            std::ofstream outFile(outputPath);
+            if (!outFile.is_open()) {
+                throw std::runtime_error("Cannot open output file: " + outputPath);
+            }
+
+            std::cout << "[Phase 4] Intermediate Representation (IR)... Check " << outputPath << "\n";
+            IRGenerator irGen(tokens);
+            irGen.generate(outFile);
+            std::cout << "IR Generation Successful.\n";
         }
         else {
             std::cerr << "Unknown mode: " << mode << "\n";
