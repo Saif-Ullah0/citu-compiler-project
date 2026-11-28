@@ -1,0 +1,6 @@
+main shro
+    int x;
+    int a;
+    int b;
+    x = a + b * 10;
+khatam
